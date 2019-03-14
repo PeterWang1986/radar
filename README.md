@@ -6,5 +6,7 @@ The code follow the design idea of this work [SSD-Tensorflow](https://github.com
 
 ## Models
 All the models are checked in logs/, and here are the performances test from my side:
+
 | model | training data | testing data | MAE | RMSE | notes |
+|-------|:-------------:|:------------:|:---:|:---:|:-----:|
 | model_v6 | shtech_part_B_train | shtech_part_B_test | 20.7 | 33.9 |
