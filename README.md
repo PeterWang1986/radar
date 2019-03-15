@@ -5,11 +5,12 @@ This repository supply a TensorFlow implementation of CVPR2016 paper [Single Ima
 The code follow the design idea of this work [SSD-Tensorflow](https://github.com/balancap/SSD-Tensorflow), and some code are copied from there.
 
 ## Models
-All the models are checked in logs/, i resized the input image into (512, 512, ?), and here is the performance test from my side:
+All the models are checked in logs/, i resized the input image into (512, 512, ?) and do NOT use pre-training strategy, here is the performance test from my side:
 
 | model | training data | testing data | MAE | RMSE | notes |
 |-------|:-------------:|:------------:|:---:|:---:|:-----:|
 | model_v6 | shtech_part_B_train | shtech_part_B_test | 20.7 | 33.9 | using gray image as input |
+| model_v102 | shtech_part_A_train | shtech_part_A_test | 111.9 | 178.0 | using RGB image as input |
 
 ## Example
 ```bash

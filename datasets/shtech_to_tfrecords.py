@@ -22,9 +22,9 @@ TOPK = 6
 BETA = 1.0
 G_KENERL_SIZE = 15
 SHRINK_RATIO = 4
+RAND_CROP_COUNT = 10
 
 # TFRecords convertion parameters
-RANDOM_SEED = 4242
 SAMPLES_PER_FILES = 50
 
 # resize image parameters
@@ -117,8 +117,7 @@ def _process_image(root_dir, img_file):
     image_shapes = []
     density_maps = []
     density_shapes = []
-    rand_crop_count = 10
-    for i in range(rand_crop_count):
+    for i in range(RAND_CROP_COUNT):
         croped_img, croped_annts = _random_crop_with_points(img, annts)
         croped_img, croped_annts = _resize_image(croped_img, croped_annts)
         density_map = _gen_density_map(croped_img, croped_annts, ratio = SHRINK_RATIO)
@@ -191,7 +190,6 @@ def run(dataset_dir, output_dir, name='shtech_train', shuffling=False):
     img_path = os.path.join(dataset_dir, DIRECTORY_IMAGES)
     image_files = glob.glob(img_path + '/*.jpg')
     if shuffling:
-        random.seed(RANDOM_SEED)
         random.shuffle(image_files)
 
     # Process dataset files.
@@ -221,7 +219,7 @@ def run(dataset_dir, output_dir, name='shtech_train', shuffling=False):
 def main(_):
     dataset_dir = '../data/shtech/part_A_final/train_data'
     output_dir = '../data/shtech/part_A_final/train_data/tfrecords_3k'
-    run(dataset_dir, output_dir)
+    run(dataset_dir, output_dir, shuffling=True)
 
 if __name__ == '__main__':
     tf.app.run()

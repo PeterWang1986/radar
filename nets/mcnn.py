@@ -147,7 +147,7 @@ def mcnn_sum_square_loss_v2(y_pred, y_true, scope='McnnLoss'):
         sum_mean = 0.5 * tf.reduce_sum(d, axis = 1)
         pixel_square_loss = tf.reduce_mean(sum_mean)
 
-        beta = 0.9
+        beta = 0.7
         loss = tf.add(beta * square_loss, (1 - beta) * pixel_square_loss, name='loss_value')
         tf.losses.add_loss(loss)
 
