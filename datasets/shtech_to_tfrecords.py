@@ -25,7 +25,7 @@ SHRINK_RATIO = 4
 RAND_CROP_COUNT = 10
 
 # TFRecords convertion parameters
-SAMPLES_PER_FILES = 50
+SAMPLES_PER_FILES = 20
 
 # resize image parameters
 CHANNELS = 3
