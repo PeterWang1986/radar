@@ -13,7 +13,7 @@ tf.app.flags.DEFINE_string(
     'model_path', None,
     'specify the model path for testing')
 
-CHANNELS = 1
+CHANNELS = 3
 FLAGS = tf.app.flags.FLAGS
 
 def main(_):
@@ -23,7 +23,7 @@ def main(_):
     model = mcnn.McnnModel()
     model_path = FLAGS.model_path
     root_dir = './data/shtech/part_B_final/test_data/'
-    # root_dir = './data/shtech/part_B_final/train_data/'
+    root_dir = '/Users/wangpeng/Work/rongyi/crowd_counting/data/ShanghaiTech_Crowd_Counting_Dataset/part_B_final/test_data/'
     image_path = root_dir + 'images/'
     annt_path = root_dir + 'ground_truth/'
     image_files = glob.glob(image_path + '*.jpg')
@@ -53,7 +53,7 @@ def main(_):
             r_pred_dmap = sess.run([pred_dmap], feed_dict={img_input: img})
 
             y_true.append(annts.shape[0])
-            y_pred.append(np.sum(r_pred_dmap))
+            y_pred.append(int(np.sum(r_pred_dmap)))
             print('%s: true= %f, pred= %f' % (os.path.basename(img_file), y_true[-1], y_pred[-1]))
 
     mae = metrics.mean_absolute_error(y_true, y_pred)

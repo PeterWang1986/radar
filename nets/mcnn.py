@@ -17,8 +17,12 @@ class McnnModel(object):
                             activation_fn=tf.nn.relu,
                             weights_regularizer=slim.l2_regularizer(weight_decay),
                             weights_initializer=tf.contrib.layers.xavier_initializer(),
-                            biases_initializer=tf.zeros_initializer()):
-            return self.nets_v1(inputs, is_training, scope)
+                            biases_initializer=tf.zeros_initializer(),
+                            normalizer_params={'is_training': is_training}):
+            # return self.nets_v1(inputs, is_training, scope)
+            # return self.nets_v2(inputs, is_training, scope)
+            # return self.nets_v3(inputs, is_training, scope)
+            return self.nets_v4(inputs, is_training, scope)
 
     def nets_v1(self, inputs, is_training, scope):
         with tf.variable_scope(scope, 'MCNN'):
@@ -52,15 +56,128 @@ class McnnModel(object):
             density_map = slim.conv2d(feature_map, 1, [1, 1], activation_fn=None, scope='density_map')
             return density_map
 
+    # model_v14
+    def nets_v2(self, inputs, is_training, scope):
+        with tf.variable_scope(scope, 'MCNN'):
+            nets = slim.conv2d(inputs, 32, [3, 3], normalizer_fn=slim.batch_norm, scope='conv1')
+            nets = slim.conv2d(nets, 64, [3, 3], normalizer_fn=slim.batch_norm, scope='conv2')
+            nets = slim.max_pool2d(nets, [2, 2], stride=2, scope='pool1')
+            nets = self.inception(nets, scope='inception_block_1')
+            nets = self.inception(nets, scope='inception_block_2')
+            nets = slim.max_pool2d(nets, [2, 2], stride=2, scope='pool2')
+            nets = self.inception(nets, scope='inception_block_3')
+            nets = self.inception(nets, scope='inception_block_4')
+            density_map = slim.conv2d(nets, 1, [1, 1], activation_fn=None, scope='density_map')
+            return density_map
+
+    # model_v15
+    def nets_v3(self, inputs, is_training, scope):
+        with tf.variable_scope(scope, 'MCNN'):
+            nets = slim.conv2d(inputs, 32, [3, 3], normalizer_fn=slim.batch_norm, scope='conv1')
+            nets = slim.max_pool2d(nets, [2, 2], stride=2, scope='pool1')
+            nets = self.inception_v2(nets, scope='inception_block_1')
+            nets = self.inception_v2(nets, scope='inception_block_2')
+            nets = slim.max_pool2d(nets, [2, 2], stride=2, scope='pool2')
+            nets = self.inception_v2(nets, scope='inception_block_3')
+            density_map = slim.conv2d(nets, 1, [1, 1], activation_fn=None, scope='density_map')
+            return density_map
+
+    # model_v16 use this nets
+    def nets_v4(self, inputs, is_training, scope):
+        with tf.variable_scope(scope, 'MCNN'):
+            nets = slim.conv2d(inputs, 32, [3, 3], scope='conv1')
+            nets = slim.conv2d(nets, 32, [3, 3], scope='conv2')
+            nets = slim.conv2d(nets, 32, [3, 3], normalizer_fn=slim.batch_norm, scope='conv3')
+            nets = slim.max_pool2d(nets, [2, 2], stride=2, scope='pool1')
+
+            with tf.variable_scope('LINE1'):
+                branch7x7 = slim.conv2d(nets, 16, [1, 1], scope='conv1')
+                branch7x7 = slim.conv2d(branch7x7, 32, [3, 3], scope='conv2_1')
+                branch7x7 = slim.conv2d(branch7x7, 32, [3, 3], scope='conv2_2')
+                branch7x7 = slim.conv2d(branch7x7, 32, [3, 3], normalizer_fn=slim.batch_norm, scope='conv2_3')
+                branch7x7 = slim.max_pool2d(branch7x7, [2, 2], stride=2, scope='pool1')
+
+                branch7x7 = slim.conv2d(branch7x7, 16, [1, 1], scope='conv3')
+                branch7x7 = slim.conv2d(branch7x7, 32, [3, 3], scope='conv4_1')
+                branch7x7 = slim.conv2d(branch7x7, 32, [3, 3], scope='conv4_2')
+                branch7x7 = slim.conv2d(branch7x7, 32, [3, 3], normalizer_fn=slim.batch_norm, scope='conv4_3')
+
+                branch7x7 = slim.conv2d(branch7x7, 8, [1, 1], scope='conv5')
+                branch7x7 = slim.conv2d(branch7x7, 8, [3, 3], scope='conv6_1')
+                branch7x7 = slim.conv2d(branch7x7, 8, [3, 3], scope='conv6_2')
+                branch7x7 = slim.conv2d(branch7x7, 8, [3, 3], scope='conv6_3')
+            with tf.variable_scope('LINE2'):
+                branch5x5 = slim.conv2d(nets, 20, [1, 1], scope='conv1')
+                branch5x5 = slim.conv2d(branch5x5, 40, [3, 3], scope='conv2_1')
+                branch5x5 = slim.conv2d(branch5x5, 40, [3, 3], normalizer_fn=slim.batch_norm, scope='conv2_2')
+                branch5x5 = slim.max_pool2d(branch5x5, [2, 2], stride=2, scope='pool1')
+
+                branch5x5 = slim.conv2d(branch5x5, 20, [1, 1], scope='conv3')
+                branch5x5 = slim.conv2d(branch5x5, 20, [3, 3], scope='conv4_1')
+                branch5x5 = slim.conv2d(branch5x5, 20, [3, 3], normalizer_fn=slim.batch_norm, scope='conv4_2')
+
+                branch5x5 = slim.conv2d(branch5x5, 10, [1, 1], scope='conv5')
+                branch5x5 = slim.conv2d(branch5x5, 10, [3, 3], scope='conv6_1')
+                branch5x5 = slim.conv2d(branch5x5, 10, [3, 3], scope='conv6_2')
+            with tf.variable_scope('LINE3'):
+                branch3x3 = slim.conv2d(nets, 48, [3, 3], normalizer_fn=slim.batch_norm, scope='conv1')
+                branch3x3 = slim.max_pool2d(branch3x3, [2, 2], stride=2, scope='pool1')
+
+                branch3x3 = slim.conv2d(branch3x3, 24, [3, 3], normalizer_fn=slim.batch_norm, scope='conv2')
+                branch3x3 = slim.conv2d(branch3x3, 12, [3, 3], scope='conv3')
+
+            feature_map = tf.concat([branch7x7, branch5x5, branch3x3], axis = -1, name='concat_feature_map')
+            density_map = slim.conv2d(feature_map, 1, [1, 1], activation_fn=None, scope='density_map')
+            return density_map
+
+    def inception(self, inputs, scope):
+        with tf.variable_scope(scope, 'inception_block'):
+            with tf.variable_scope('branch1x1'):
+                branch1x1 = slim.conv2d(inputs, 64, [1, 1], normalizer_fn=slim.batch_norm, scope='conv1')
+            with tf.variable_scope('max_pool_1x1'):
+                max_pool_1x1 = slim.max_pool2d(inputs, [3, 3], stride=1, padding='SAME', scope='max_pool')
+                max_pool_1x1 = slim.conv2d(max_pool_1x1, 32, [1, 1], normalizer_fn=slim.batch_norm, scope='conv1')
+            with tf.variable_scope('branch3x3'):
+                branch3x3 = slim.conv2d(inputs, 64, [1, 1], normalizer_fn=slim.batch_norm, scope='conv1')
+                branch3x3 = slim.conv2d(branch3x3, 64, [3, 3], normalizer_fn=slim.batch_norm, scope='conv2')
+            with tf.variable_scope('branch5x5'):
+                branch5x5 = slim.conv2d(inputs, 48, [1, 1], normalizer_fn=slim.batch_norm, scope='conv1')
+                branch5x5 = slim.conv2d(branch5x5, 48, [3, 3], normalizer_fn=slim.batch_norm, scope='conv2')
+                branch5x5 = slim.conv2d(branch5x5, 32, [3, 3], normalizer_fn=slim.batch_norm, scope='conv3')
+            nets = tf.concat([branch1x1, max_pool_1x1, branch3x3, branch5x5], axis=-1, name='filter_concat')
+            return nets
+    
+    def inception_v2(self, inputs, scope):
+        """
+        for nets_v3
+        """
+        with tf.variable_scope(scope, 'inception_block'):
+            with tf.variable_scope('branch1x1'):
+                branch1x1 = slim.conv2d(inputs, 32, [1, 1], normalizer_fn=slim.batch_norm, scope='conv1')
+            with tf.variable_scope('max_pool_1x1'):
+                max_pool_1x1 = slim.max_pool2d(inputs, [3, 3], stride=1, padding='SAME', scope='max_pool')
+                max_pool_1x1 = slim.conv2d(max_pool_1x1, 32, [1, 1], normalizer_fn=slim.batch_norm, scope='conv1')
+            with tf.variable_scope('branch3x3'):
+                branch3x3 = slim.conv2d(inputs, 64, [1, 1], normalizer_fn=slim.batch_norm, scope='conv1')
+                branch3x3 = slim.conv2d(branch3x3, 32, [3, 3], normalizer_fn=slim.batch_norm, scope='conv2')
+            with tf.variable_scope('branch5x5'):
+                branch5x5 = slim.conv2d(inputs, 48, [1, 1], normalizer_fn=slim.batch_norm, scope='conv1')
+                branch5x5 = slim.conv2d(branch5x5, 48, [3, 3], normalizer_fn=slim.batch_norm, scope='conv2')
+                branch5x5 = slim.conv2d(branch5x5, 32, [3, 3], normalizer_fn=slim.batch_norm, scope='conv3')
+            nets = tf.concat([branch1x1, max_pool_1x1, branch3x3, branch5x5], axis=-1, name='filter_concat')
+            return nets
+
+
     def losses(self, y_pred, y_true, scope='McnnLoss'):
         """
         y_pred with shape [batch_size, height, width, 1]
         y_true with shape [batch_size, height, width]
         """
-        return mcnn_square_loss(y_pred, y_true, scope)
+        # return mcnn_square_loss(y_pred, y_true, scope)
         # return mcnn_smooth_abs(y_pred, y_true, scope)
         # return mcnn_sum_square_loss(y_pred, y_true, scope)
         # return mcnn_mesa_loss(y_pred, y_true, scope)
+        return mcnn_sum_square_loss_v2(y_pred, y_true, scope)
 
     def get_feature_map_height(self, height):
         return int(height / 4)
@@ -74,17 +191,20 @@ def mcnn_square_loss(y_pred, y_true, scope='McnnLoss'):
         batch_size = y_pred.shape[0]
         y_pred = tf.reshape(y_pred, shape=[batch_size, -1])
         y_true = tf.reshape(y_true, shape=[batch_size, -1])
-        diff = tf.squared_difference(y_pred, y_true, name='squared_difference')
-        total_sum = tf.reduce_sum(diff, name='total_difference_sum')
-        loss = tf.divide(total_sum, 2.0 * tf.cast(batch_size, tf.float32), name='loss_value')
+        d = tf.squared_difference(y_pred, y_true, name='sqr_d')
+        d_sum = 0.5 * tf.reduce_sum(d, axis=1, name='sum')
+        loss = tf.reduce_mean(d_sum, name='loss_value')
         tf.losses.add_loss(loss)
 
         # summary
         y_pred_count = tf.reduce_sum(y_pred, axis=1)
         y_true_count = tf.reduce_sum(y_true, axis=1)
-        abs_diff = tf.abs(y_pred_count - y_true_count)
-        mae = tf.reduce_mean(abs_diff)
+        abs_d = tf.abs(y_pred_count - y_true_count)
+        sqr_d = tf.squared_difference(y_pred_count, y_true_count)
+        mae = tf.reduce_mean(abs_d)
+        mse = tf.reduce_mean(sqr_d)
         tf.summary.scalar('MAE', mae)
+        tf.summary.scalar('RMSE', tf.sqrt(mse))
 
         return loss
 
@@ -147,7 +267,7 @@ def mcnn_sum_square_loss_v2(y_pred, y_true, scope='McnnLoss'):
         sum_mean = 0.5 * tf.reduce_sum(d, axis = 1)
         pixel_square_loss = tf.reduce_mean(sum_mean)
 
-        beta = 0.7
+        beta = 0.01
         loss = tf.add(beta * square_loss, (1 - beta) * pixel_square_loss, name='loss_value')
         tf.losses.add_loss(loss)
 
@@ -197,9 +317,6 @@ def max_subtensor(A):
     return start, end, max_so_far
 
 def mcnn_mesa_loss(y_pred, y_true, scope='McnnLoss'):
-    """
-    currently NOT work
-    """
     with tf.variable_scope(scope, 'McnnLoss'):
         dmap_shape = y_true.get_shape().as_list()
         y_pred = tf.reshape(y_pred, dmap_shape)
