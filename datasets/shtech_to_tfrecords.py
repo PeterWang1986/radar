@@ -19,7 +19,7 @@ DIRECTORY_IMAGES = 'images/'
 
 # generate density map parameters
 TOPK = 6
-BETA = 1.0
+BETA = 0.3
 G_KENERL_SIZE = 15
 SHRINK_RATIO = 4
 RAND_CROP_COUNT = 10
@@ -88,11 +88,13 @@ def _gen_density_map(img, annts, ratio):
         for i, annt in enumerate(annts):
             cur_density_map = np.zeros([dmap_height, dmap_width])
             top_k = dis_mat[i][sorted_index[i][1:TOPK]]
-            avg_dis = np.average(np.sqrt(top_k))
+            avg_dis = np.average(top_k)
             x, y = int(annt[0] / ratio), int(annt[1] / ratio)
             x = dmap_width - 1 if x >= dmap_width else x
             y = dmap_height - 1 if y >= dmap_height else y
             radius = BETA * avg_dis
+            radius = min(15, radius)
+            radius = max(1, radius)
             cur_density_map[y][x] = 1
             cur_density_map = cv2.GaussianBlur(cur_density_map, (G_KENERL_SIZE, G_KENERL_SIZE), sigmaX=radius/ratio)
             density_map += cur_density_map
