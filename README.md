@@ -1,6 +1,8 @@
-# Single Image Crowd Counting via Multi Column Convolutional Neural Network
+# Implementation of Crowd Counting
 
-This repository supply a TensorFlow implementation of CVPR2016 paper [Single Image Crowd Counting via Multi Column Convolutional Neural Network](https://www.cv-foundation.org/openaccess/content_cvpr_2016/papers/Zhang_Single-Image_Crowd_Counting_CVPR_2016_paper.pdf).
+This repository supply a TensorFlow implementation of
+* [Single Image Crowd Counting via Multi Column Convolutional Neural Network](https://www.cv-foundation.org/openaccess/content_cvpr_2016/papers/Zhang_Single-Image_Crowd_Counting_CVPR_2016_paper.pdf)
+* [CSRNet: Dilated Convolutional Neural Networks for Understanding the Highly Congested Scenes](https://arxiv.org/abs/1802.10062)
 
 The code follow the design idea of this work [SSD-Tensorflow](https://github.com/balancap/SSD-Tensorflow), and some code are copied from there.
 
@@ -11,7 +13,9 @@ All the models are checked in logs/, i resized the input image into (512, 512, ?
 |-------|:-------------:|:------------:|:---:|:---:|:-----:|
 | model_v6 | shtech_part_B_train | shtech_part_B_test | 20.7 | 33.9 | using gray image as input & mcnn.nets_v1|
 | model_v18 | shtech_part_B_train | shtech_part_B_test | 16.3 | 24.8 | using RGB image as input & mcnn.nets_v4|
+| model_v21 | shtech_part_B_train | shtech_part_B_test | 14.1 | 26.5 | using RGB image as input & vgg.nets_v1.backend|
 | model_v103 | shtech_part_A_train | shtech_part_A_test | 109.4 | 173.5 | using RGB image as input & mcnn.nets_v1|
+| model_v122 | shtech_part_A_train | shtech_part_A_test | 81.4 | 149.6 | using RGB image as input & vgg.nets_v1.backend_inception|
 
 NOTE - you need to update the nets_v<xxx> by yourself in nets/mcnn.py
 
