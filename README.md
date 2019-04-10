@@ -15,7 +15,7 @@ All the models are checked in logs/, i resized the input image into (512, 512, ?
 | model_v18 | shtech_part_B_train | shtech_part_B_test | 16.3 | 24.8 | using RGB image as input & mcnn.nets_v4|
 | model_v21 | shtech_part_B_train | shtech_part_B_test | 14.1 | 26.5 | using RGB image as input & vgg.nets_v1.backend|
 | model_v103 | shtech_part_A_train | shtech_part_A_test | 109.4 | 173.5 | using RGB image as input & mcnn.nets_v1|
-| model_v122 | shtech_part_A_train | shtech_part_A_test | 81.4 | 149.6 | using RGB image as input & vgg.nets_v1.backend_inception|
+| [model_v122](https://pan.baidu.com/s/1Q-35kp8N-uwxrvpyrUitYQ) | shtech_part_A_train | shtech_part_A_test | 81.4 | 149.6 | using RGB image as input & vgg.nets_v1.backend_inception|
 
 NOTE - you need to update the nets_v<xxx> by yourself in nets/mcnn.py
 
